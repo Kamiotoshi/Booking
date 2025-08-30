@@ -38,6 +38,7 @@ const App: React.FC = () => {
     };
 
     const handleLogout = () => {
+        ApiService.removeStoredToken();  // Xóa token trong localStorage
         setToken('');
         setCurrentBooking(null);
         setCurrentView('login');

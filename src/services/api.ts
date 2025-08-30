@@ -41,19 +41,21 @@ export class ApiService {
             });
 
             if (!response.ok) {
+                // Gom lỗi 401, 403 hoặc bất kỳ lỗi đăng nhập nào thành 1 message chung
                 if (response.status === 401 || response.status === 403) {
                     throw new Error('Tên đăng nhập hoặc mật khẩu không đúng');
                 }
-                throw new Error(`Đăng nhập thất bại (${response.status})`);
+                throw new Error('Đăng nhập thất bại. Vui lòng thử lại sau.');
             }
 
             const data = await response.json();
 
+            // Nếu server không trả token, vẫn coi như đăng nhập thất bại
             if (!data.token) {
-                throw new Error('Server không trả về token hợp lệ');
+                throw new Error('Tên đăng nhập hoặc mật khẩu không đúng');
             }
 
-            // Lưu token vào localStorage (chú ý: không hoạt động trong Claude.ai)
+            // Lưu token vào localStorage
             try {
                 localStorage.setItem('authToken', data.token);
             } catch (e) {
@@ -68,6 +70,7 @@ export class ApiService {
             throw error;
         }
     }
+
 
     static async createBooking(bookingData: BookingData, token?: string): Promise<BookingResponse> {
         const authToken = token || this.getStoredToken();
