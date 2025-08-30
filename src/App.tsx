@@ -1,10 +1,12 @@
 // src/App.tsx
 
-import React, { useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import type { BookingResponse } from './models/model.ts';
 import { LoginForm } from './components/loginForm.tsx';
 import { BookingForm } from './components/bookingForm.tsx';
 import { BookingDetails } from './components/bookingDetails.tsx';
+
+import { ApiService } from './services/api.ts';
 
 type ViewType = 'login' | 'booking' | 'details';
 
@@ -12,7 +14,14 @@ const App: React.FC = () => {
     const [token, setToken] = useState<string>('');
     const [currentBooking, setCurrentBooking] = useState<BookingResponse | null>(null);
     const [currentView, setCurrentView] = useState<ViewType>('login');
-
+    // Kiểm tra token trong localStorage khi app khởi động
+    useEffect(() => {
+        const storedToken = ApiService.getStoredToken();
+        if (storedToken && ApiService.isTokenValid(storedToken)) {
+            setToken(storedToken);
+            setCurrentView('booking');
+        }
+    }, []);
     const handleLogin = (authToken: string) => {
         setToken(authToken);
         setCurrentView('booking');
