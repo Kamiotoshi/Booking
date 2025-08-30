@@ -1,7 +1,13 @@
 // src/components/loading.tsx
 
 import React from 'react';
-import type { LoadingSpinnerProps, LoadingProgressBarProps } from '../models/model';
+export interface LoadingSpinnerProps {
+    size?: 'sm' | 'md' | 'lg';
+}
+
+export interface LoadingProgressBarProps {
+    isLoading: boolean;
+}
 
 export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ size = 'md' }) => {
     const sizeClasses = {

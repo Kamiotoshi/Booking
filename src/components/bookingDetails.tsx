@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { CheckCircle, User, Calendar, DollarSign } from 'lucide-react';
-import type { BookingResponse, BookingData } from '../models/model';
+import type { BookingResponse } from '../models/ReponseModel/bookingResponse.ts';
+import type { BookingData } from '../models/ReponseModel/bookingResponse.ts'
 import { ApiService } from '../services/api';
 import { FormatUtils } from '../utils/format';
 import { Alert } from './alert';

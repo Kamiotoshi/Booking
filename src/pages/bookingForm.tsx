@@ -2,19 +2,21 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Loader2, Calendar, User, DollarSign, CreditCard } from 'lucide-react';
-import type { BookingData, BookingResponse, ValidationErrors } from '../models/model';
-import { ApiService } from '../services/api';
-import { ValidationUtils } from '../utils/validation';
-import { FormatUtils } from '../utils/format';
-import { Alert } from './alert';
-import { LoadingProgressBar } from './loading';
+import type { BookingData,BookingResponse  } from '../models/ReponseModel/bookingResponse.ts'
+import { ApiService } from '../services/api.ts';
+import { ValidationUtils } from '../utils/validation.ts';
+import { FormatUtils } from '../utils/format.ts';
+import { Alert } from '../components/alert.tsx';
+import { LoadingProgressBar } from '../components/loading.tsx';
 
 interface BookingFormProps {
     token: string;
     onBookingSuccess: (booking: BookingResponse) => void;
     onLogout: () => void;
 }
-
+export interface ValidationErrors {
+    [key: string]: string;
+}
 export const BookingForm: React.FC<BookingFormProps> = ({
                                                             token,
                                                             onBookingSuccess,

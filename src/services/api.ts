@@ -1,6 +1,7 @@
 // src/services/api.ts
 
-import type { LoginData, BookingData, BookingResponse } from '../models/model.ts';
+import type {LoginModel} from "../models/RequestModel/LoginModel.ts";
+import type { BookingData,BookingResponse } from '../models/ReponseModel/bookingResponse.ts'
 const API_BASE_URL = '/api';
 
 
@@ -27,7 +28,7 @@ export class ApiService {
         return !!(token && token.length > 0);
     }
 
-    static async login(credentials: LoginData): Promise<{ token: string }> {
+    static async login(credentials: LoginModel): Promise<{ token: string }> {
         try {
             const response = await fetch(`${API_BASE_URL}/auth`, {
                 method: 'POST',

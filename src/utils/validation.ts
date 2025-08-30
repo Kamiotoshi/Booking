@@ -1,9 +1,13 @@
 // src/utils/validation.ts
 
-import type { LoginData, BookingData, ValidationErrors } from '../models/model';
+import type { BookingData } from '../models/ReponseModel/bookingResponse.ts'
+import type {LoginModel} from "../models/RequestModel/LoginModel.ts";
 
+export interface ValidationErrors {
+    [key: string]: string;
+}
 export class ValidationUtils {
-    static validateLoginForm(data: LoginData): ValidationErrors {
+    static validateLoginForm(data: LoginModel): ValidationErrors {
         const errors: ValidationErrors = {};
 
         if (!data.username.trim()) {

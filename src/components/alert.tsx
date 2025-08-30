@@ -2,7 +2,11 @@
 
 import React from 'react';
 import { AlertCircle, CheckCircle } from 'lucide-react';
-import type { AlertProps } from '../models/model';
+export interface AlertProps {
+    type: 'success' | 'error' | 'warning' | 'info';
+    message: string;
+    onClose?: () => void;
+}
 
 export const Alert: React.FC<AlertProps> = ({ type, message, onClose }) => {
     const alertClasses = {

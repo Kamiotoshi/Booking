@@ -2,19 +2,22 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Eye, EyeOff, Loader2, User } from 'lucide-react';
-import type { LoginData, ValidationErrors } from '../models/model';
-import { ApiService } from '../services/api';
-import { ValidationUtils } from '../utils/validation';
-import { FormatUtils } from '../utils/format';
-import { Alert } from './alert';
-import { LoadingProgressBar } from './loading';
+import type { LoginModel } from "../models/RequestModel/LoginModel.ts";
+import { ApiService } from '../services/api.ts';
+import { ValidationUtils } from '../utils/validation.ts';
+import { FormatUtils } from '../utils/format.ts';
+import { Alert } from '../components/alert.tsx';
+import { LoadingProgressBar } from '../components/loading.tsx';
 
 interface LoginFormProps {
     onLogin: (token: string) => void;
 }
+export interface ValidationErrors {
+    [key: string]: string;
+}
 
 export const LoginForm: React.FC<LoginFormProps> = ({ onLogin }) => {
-    const [formData, setFormData] = useState<LoginData>({ username: '', password: '' });
+    const [formData, setFormData] = useState<LoginModel>({ username: '', password: '' });
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string>('');
@@ -37,7 +40,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin }) => {
         }
     }, [validationErrors]);
 
-    const handleInputChange = (field: keyof LoginData) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleInputChange = (field: keyof LoginModel) => (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData(prev => ({ ...prev, [field]: e.target.value }));
 
         if (validationErrors[field]) {

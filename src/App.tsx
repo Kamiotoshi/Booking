@@ -1,9 +1,9 @@
 // src/App.tsx
 
 import React, {useEffect, useState} from 'react';
-import type { BookingResponse } from './models/model.ts';
-import { LoginForm } from './components/loginForm.tsx';
-import { BookingForm } from './components/bookingForm.tsx';
+import type { BookingResponse } from './models/ReponseModel/bookingResponse.ts';
+import { LoginForm } from './pages/loginForm.tsx';
+import { BookingForm } from './pages/bookingForm.tsx';
 import { BookingDetails } from './components/bookingDetails.tsx';
 
 import { ApiService } from './services/api.ts';
