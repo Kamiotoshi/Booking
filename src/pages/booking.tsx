@@ -1,4 +1,4 @@
-// src/components/bookingForm.tsx
+// src/components/booking.tsx
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Loader2, Calendar, User, DollarSign, CreditCard } from 'lucide-react';
@@ -17,7 +17,7 @@ interface BookingFormProps {
 export interface ValidationErrors {
     [key: string]: string;
 }
-export const BookingForm: React.FC<BookingFormProps> = ({
+export const Booking: React.FC<BookingFormProps> = ({
                                                             token,
                                                             onBookingSuccess,
                                                             onLogout

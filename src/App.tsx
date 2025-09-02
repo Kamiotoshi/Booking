@@ -2,8 +2,8 @@
 
 import React, {useEffect, useState} from 'react';
 import type { BookingResponse } from './models/ReponseModel/bookingResponse.ts';
-import { LoginForm } from './pages/loginForm.tsx';
-import { BookingForm } from './pages/bookingForm.tsx';
+import { Login } from './pages/login.tsx';
+import { Booking } from './pages/booking.tsx';
 import { BookingDetails } from './components/bookingDetails.tsx';
 
 import { ApiService } from './services/api.ts';
@@ -47,11 +47,11 @@ const App: React.FC = () => {
     const renderCurrentView = () => {
         switch (currentView) {
             case 'login':
-                return <LoginForm onLogin={handleLogin} />;
+                return <Login onLogin={handleLogin} />;
 
             case 'booking':
                 return (
-                    <BookingForm
+                    <Booking
                         token={token}
                         onBookingSuccess={handleBookingSuccess}
                         onLogout={handleLogout}
@@ -69,7 +69,7 @@ const App: React.FC = () => {
                 ) : null;
 
             default:
-                return <LoginForm onLogin={handleLogin} />;
+                return <Login onLogin={handleLogin} />;
         }
     };
 

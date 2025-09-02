@@ -1,4 +1,4 @@
-// src/components/loginForm.tsx
+// src/components/login.tsx
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Eye, EyeOff, Loader2, User } from 'lucide-react';
@@ -16,7 +16,7 @@ export interface ValidationErrors {
     [key: string]: string;
 }
 
-export const LoginForm: React.FC<LoginFormProps> = ({ onLogin }) => {
+export const Login: React.FC<LoginFormProps> = ({ onLogin }) => {
     const [formData, setFormData] = useState<LoginModel>({ username: '', password: '' });
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
