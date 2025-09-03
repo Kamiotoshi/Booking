@@ -20,6 +20,20 @@ const App: React.FC = () => {
         }
     }, []);
 
+    // Đồng bộ state với localStorage - kiểm tra định kỳ
+    useEffect(() => {
+        const interval = setInterval(() => {
+            const storedToken = LoginService.getStoredToken();
+            if (!storedToken && token) {
+                // Nếu localStorage bị xóa nhưng state vẫn có token
+                setToken('');
+                setCurrentBooking(null);
+            }
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, [token]);
+
     const handleLogin = (authToken: string) => {
         setToken(authToken);
     };
@@ -114,6 +128,20 @@ const App: React.FC = () => {
                                     token={token}
                                     onBookingSuccess={handleBookingSuccess}
                                     onLogout={handleLogout}
+                                />
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/booking-details/:id"
+                        element={
+                            <ProtectedRoute>
+                                <BookingDetails
+                                    token={token}
+                                    onLogout={handleLogout}
+                                    showCreateNewButton={false}
+                                    successMessage="Chi tiết booking"
                                 />
                             </ProtectedRoute>
                         }

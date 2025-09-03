@@ -10,7 +10,7 @@ export class BookingService {
         const authToken = token || LoginService.getStoredToken();
 
         if (!authToken) {
-            throw new Error('Không tìm thấy token xác thực. Vui lòng đăng nhập lại.');
+            throw new Error('Token hết hạn. Vui lòng đăng nhập lại.');
         }
 
         const response = await fetch(`${API_BASE_URL}/booking`, {
@@ -25,23 +25,16 @@ export class BookingService {
             mode: 'cors',
         });
 
-        if (!response.ok) {
-            if (response.status === 401 || response.status === 403) {
-                LoginService.removeStoredToken();
-                throw new Error('Token hết hạn. Vui lòng đăng nhập lại.');
-            }
-            throw new Error(`Tạo booking thất bại (${response.status})`);
-        }
 
         const data = await response.json();
         return data;
     }
 
-    static async getBookingById(bookingId: number, token?: string): Promise<BookingData> {
-        const authToken = token || LoginService.getStoredToken();
+    static async getBookingById(bookingId: number): Promise<BookingData> {
+        const authToken = LoginService.getStoredToken();
 
         if (!authToken) {
-            throw new Error('Không tìm thấy token xác thực. Vui lòng đăng nhập lại.');
+            throw new Error('Token hết hạn. Vui lòng đăng nhập lại.');
         }
 
         const response = await fetch(`${API_BASE_URL}/booking/${bookingId}`, {
@@ -53,13 +46,6 @@ export class BookingService {
             mode: 'cors',
         });
 
-        if (!response.ok) {
-            if (response.status === 401 || response.status === 403) {
-                LoginService.removeStoredToken();
-                throw new Error('Token hết hạn. Vui lòng đăng nhập lại.');
-            }
-            throw new Error(`Không thể lấy thông tin booking (${response.status})`);
-        }
 
         const data = await response.json();
         return data;

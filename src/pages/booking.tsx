@@ -21,7 +21,7 @@ export interface ValidationErrors {
 }
 
 export const Booking: React.FC<BookingFormProps> = ({
-                                                        token,
+                                                        // token,
                                                         onBookingSuccess,
                                                         onLogout
                                                     }) => {
@@ -102,7 +102,7 @@ export const Booking: React.FC<BookingFormProps> = ({
         setError('');
 
         try {
-            const bookingResponse = await BookingService.createBooking(formData, token);
+            const bookingResponse = await BookingService.createBooking(formData);
             onBookingSuccess(bookingResponse);
             navigate('/booking-details');
         } catch (err) {
