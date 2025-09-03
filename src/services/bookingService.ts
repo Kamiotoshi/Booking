@@ -9,9 +9,9 @@ export class BookingService {
     static async createBooking(bookingData: BookingData, token?: string): Promise<BookingResponse> {
         const authToken = token || LoginService.getStoredToken();
 
-        if (!authToken) {
-            throw new Error('Token hết hạn. Vui lòng đăng nhập lại.');
-        }
+        // if (!authToken) {
+        //     throw new Error('Token hết hạn. Vui lòng đăng nhập lại.');
+        // }
 
         const response = await fetch(`${API_BASE_URL}/booking`, {
             method: 'POST',
@@ -33,9 +33,9 @@ export class BookingService {
     static async getBookingById(bookingId: number): Promise<BookingData> {
         const authToken = LoginService.getStoredToken();
 
-        if (!authToken) {
-            throw new Error('Token hết hạn. Vui lòng đăng nhập lại.');
-        }
+        // if (!authToken) {
+        //     throw new Error('Token hết hạn. Vui lòng đăng nhập lại.');
+        // }
 
         const response = await fetch(`${API_BASE_URL}/booking/${bookingId}`, {
             headers: {

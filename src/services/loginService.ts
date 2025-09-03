@@ -50,7 +50,7 @@ export class LoginService {
 
         // Nếu server không trả token, vẫn coi như đăng nhập thất bại
         if (!data.token) {
-            throw new Error('Tên đăng nhập hoặc mật khẩu không đúng');
+            throw new Error('Đăng nhập thất bại. Vui lòng thử lại sau.');
         }
 
         // Lưu token vào localStorage

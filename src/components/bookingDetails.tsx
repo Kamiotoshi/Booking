@@ -119,7 +119,8 @@ export const BookingDetails: React.FC<BookingDetailsProps> = ({
                         <div className="col-12 col-lg-8">
                             <Alert
                                 type="error"
-                                message={error || 'Không thể hiển thị thông tin booking'}
+                                // message={error || 'Không thể hiển thị thông tin booking'}
+                                message={'Không thể hiển thị thông tin booking'}
                             />
                             <div className="text-center mt-3">
                                 <button

@@ -7,17 +7,23 @@ import { Login } from './pages/login.tsx';
 import { Booking } from './pages/booking.tsx';
 import { BookingDetails } from './components/bookingDetails.tsx';
 import { LoginService } from './services/loginService.ts';
+import { LoadingSpinner } from './components/loading.tsx'; // Import spinner nếu có
 
 const App: React.FC = () => {
     const [token, setToken] = useState<string>('');
     const [currentBooking, setCurrentBooking] = useState<BookingResponse | null>(null);
+    const [isLoading, setIsLoading] = useState(true); // Thêm state này
 
-    // Kiểm tra token trong localStorage khi app khởi động
+    // Load token synchronous trong useEffect
     useEffect(() => {
-        const storedToken = LoginService.getStoredToken();
-        if (storedToken && LoginService.isTokenValid(storedToken)) {
-            setToken(storedToken);
-        }
+        const loadToken = () => {
+            const storedToken = LoginService.getStoredToken();
+            if (storedToken && LoginService.isTokenValid(storedToken)) {
+                setToken(storedToken);
+            }
+            setIsLoading(false); // Load xong
+        };
+        loadToken();
     }, []);
 
     // Đồng bộ state với localStorage - kiểm tra định kỳ
@@ -52,6 +58,14 @@ const App: React.FC = () => {
     const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         return token ? <>{children}</> : <Navigate to="/login" replace />;
     };
+    // Nếu đang loading, hiển thị spinner
+    if (isLoading) {
+        return (
+            <div className="container-fluid min-vh-100 d-flex align-items-center justify-content-center">
+                <LoadingSpinner size="lg" />
+            </div>
+        );
+    }
 
     return (
         <>
