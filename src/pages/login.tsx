@@ -1,9 +1,10 @@
-// src/components/login.tsx
+// src/pages/login.tsx
 
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Loader2, User } from 'lucide-react';
-import type { LoginModel } from "../models/RequestModel/LoginModel.ts";
-import { ApiService } from '../services/api.ts';
+import type { LoginModel } from "../models/LoginModel.ts";
+import { LoginService } from '../services/loginService.ts';
 import { ValidationUtils } from '../utils/validation.ts';
 import { FormatUtils } from '../utils/format.ts';
 import { Alert } from '../components/alert.tsx';
@@ -12,11 +13,13 @@ import { LoadingProgressBar } from '../components/loading.tsx';
 interface LoginFormProps {
     onLogin: (token: string) => void;
 }
+
 export interface ValidationErrors {
     [key: string]: string;
 }
 
 export const Login: React.FC<LoginFormProps> = ({ onLogin }) => {
+    const navigate = useNavigate();
     const [formData, setFormData] = useState<LoginModel>({ username: '', password: '' });
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -61,8 +64,9 @@ export const Login: React.FC<LoginFormProps> = ({ onLogin }) => {
         setError('');
 
         try {
-            const response = await ApiService.login(formData);
+            const response = await LoginService.login(formData);
             onLogin(response.token);
+            navigate('/booking');
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Có lỗi xảy ra khi đăng nhập');
         } finally {

@@ -1,9 +1,10 @@
-// src/components/booking.tsx
+// src/pages/booking.tsx
 
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Loader2, Calendar, User, DollarSign, CreditCard } from 'lucide-react';
-import type { BookingData,BookingResponse  } from '../models/ReponseModel/bookingResponse.ts'
-import { ApiService } from '../services/api.ts';
+import type { BookingData, BookingResponse } from '../models/bookingResponse.ts';
+import { BookingService } from '../services/bookingService.ts';
 import { ValidationUtils } from '../utils/validation.ts';
 import { FormatUtils } from '../utils/format.ts';
 import { Alert } from '../components/alert.tsx';
@@ -14,14 +15,17 @@ interface BookingFormProps {
     onBookingSuccess: (booking: BookingResponse) => void;
     onLogout: () => void;
 }
+
 export interface ValidationErrors {
     [key: string]: string;
 }
+
 export const Booking: React.FC<BookingFormProps> = ({
-                                                            token,
-                                                            onBookingSuccess,
-                                                            onLogout
-                                                        }) => {
+                                                        token,
+                                                        onBookingSuccess,
+                                                        onLogout
+                                                    }) => {
+    const navigate = useNavigate();
     const [formData, setFormData] = useState<BookingData>({
         firstname: '',
         lastname: '',
@@ -98,8 +102,9 @@ export const Booking: React.FC<BookingFormProps> = ({
         setError('');
 
         try {
-            const bookingResponse = await ApiService.createBooking(formData, token);
+            const bookingResponse = await BookingService.createBooking(formData, token);
             onBookingSuccess(bookingResponse);
+            navigate('/booking-details');
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Có lỗi xảy ra khi tạo booking');
         } finally {

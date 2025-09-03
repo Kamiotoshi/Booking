@@ -1,7 +1,7 @@
 // src/utils/validation.ts
 
-import type { BookingData } from '../models/ReponseModel/bookingResponse.ts'
-import type {LoginModel} from "../models/RequestModel/LoginModel.ts";
+import type { BookingData } from '../models/bookingResponse.ts'
+import type {LoginModel} from "../models/LoginModel.ts";
 
 export interface ValidationErrors {
     [key: string]: string;

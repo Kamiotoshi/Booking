@@ -1,13 +1,14 @@
 // src/components/bookingDetails.tsx
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { CheckCircle, User, Calendar, DollarSign } from 'lucide-react';
-import type { BookingResponse } from '../models/ReponseModel/bookingResponse.ts';
-import type { BookingData } from '../models/ReponseModel/bookingResponse.ts'
-import { ApiService } from '../services/api';
-import { FormatUtils } from '../utils/format';
-import { Alert } from './alert';
-import { LoadingSpinner, LoadingProgressBar } from './loading';
+import type { BookingResponse } from '../models/bookingResponse.ts';
+import type { BookingData } from '../models/bookingResponse.ts'
+import { BookingService } from '../services/bookingService.ts';
+import { FormatUtils } from '../utils/format.ts';
+import { Alert } from './alert.tsx';
+import { LoadingSpinner, LoadingProgressBar } from './loading.tsx';
 
 interface BookingDetailsProps {
     bookingResponse: BookingResponse;
@@ -22,6 +23,7 @@ export const BookingDetails: React.FC<BookingDetailsProps> = ({
                                                                   onBack,
                                                                   onLogout
                                                               }) => {
+    const navigate = useNavigate();
     const [bookingDetails, setBookingDetails] = useState<BookingData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string>('');
@@ -31,7 +33,7 @@ export const BookingDetails: React.FC<BookingDetailsProps> = ({
         setError('');
 
         try {
-            const data = await ApiService.getBookingById(bookingResponse.bookingid, token);
+            const data = await BookingService.getBookingById(bookingResponse.bookingid, token);
             setBookingDetails(data);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Không thể tải thông tin booking');
@@ -44,6 +46,11 @@ export const BookingDetails: React.FC<BookingDetailsProps> = ({
         FormatUtils.scrollToTop();
         fetchBookingDetails();
     }, [fetchBookingDetails]);
+
+    const handleBack = () => {
+        onBack();
+        navigate('/booking');
+    };
 
     if (isLoading) {
         return (
@@ -120,8 +127,8 @@ export const BookingDetails: React.FC<BookingDetailsProps> = ({
                                                 <p className="mb-1">
                                                     <strong>Trạng thái cọc:</strong>
                                                     <span className={`badge ms-2 ${displayData.depositpaid ? 'bg-success' : 'bg-warning'}`}>
-                            {displayData.depositpaid ? 'Đã thanh toán' : 'Chưa thanh toán'}
-                          </span>
+                                                        {displayData.depositpaid ? 'Đã thanh toán' : 'Chưa thanh toán'}
+                                                    </span>
                                                 </p>
                                             </div>
                                         </div>
@@ -151,7 +158,7 @@ export const BookingDetails: React.FC<BookingDetailsProps> = ({
                                     <button
                                         type="button"
                                         className="btn btn-outline-primary"
-                                        onClick={onBack}
+                                        onClick={handleBack}
                                         style={{ cursor: 'pointer' }}
                                     >
                                         Tạo booking mới

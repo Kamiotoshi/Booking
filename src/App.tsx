@@ -1,76 +1,42 @@
 // src/App.tsx
 
-import React, {useEffect, useState} from 'react';
-import type { BookingResponse } from './models/ReponseModel/bookingResponse.ts';
+import React, { useEffect, useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import type { BookingResponse } from './models/bookingResponse.ts';
 import { Login } from './pages/login.tsx';
 import { Booking } from './pages/booking.tsx';
 import { BookingDetails } from './components/bookingDetails.tsx';
-
-import { ApiService } from './services/api.ts';
-
-type ViewType = 'login' | 'booking' | 'details';
+import { LoginService } from './services/loginService.ts';
 
 const App: React.FC = () => {
     const [token, setToken] = useState<string>('');
     const [currentBooking, setCurrentBooking] = useState<BookingResponse | null>(null);
-    const [currentView, setCurrentView] = useState<ViewType>('login');
+
     // Kiểm tra token trong localStorage khi app khởi động
     useEffect(() => {
-        const storedToken = ApiService.getStoredToken();
-        if (storedToken && ApiService.isTokenValid(storedToken)) {
+        const storedToken = LoginService.getStoredToken();
+        if (storedToken && LoginService.isTokenValid(storedToken)) {
             setToken(storedToken);
-            setCurrentView('booking');
         }
     }, []);
+
     const handleLogin = (authToken: string) => {
         setToken(authToken);
-        setCurrentView('booking');
     };
 
     const handleBookingSuccess = (booking: BookingResponse) => {
         setCurrentBooking(booking);
-        setCurrentView('details');
-    };
-
-    const handleBack = () => {
-        setCurrentBooking(null);
-        setCurrentView('booking');
     };
 
     const handleLogout = () => {
-        ApiService.removeStoredToken();  // Xóa token trong localStorage
+        LoginService.removeStoredToken();
         setToken('');
         setCurrentBooking(null);
-        setCurrentView('login');
     };
 
-    const renderCurrentView = () => {
-        switch (currentView) {
-            case 'login':
-                return <Login onLogin={handleLogin} />;
-
-            case 'booking':
-                return (
-                    <Booking
-                        token={token}
-                        onBookingSuccess={handleBookingSuccess}
-                        onLogout={handleLogout}
-                    />
-                );
-
-            case 'details':
-                return currentBooking ? (
-                    <BookingDetails
-                        bookingResponse={currentBooking}
-                        token={token}
-                        onBack={handleBack}
-                        onLogout={handleLogout}
-                    />
-                ) : null;
-
-            default:
-                return <Login onLogin={handleLogin} />;
-        }
+    // Protected Route Component
+    const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+        return token ? <>{children}</> : <Navigate to="/login" replace />;
     };
 
     return (
@@ -128,7 +94,69 @@ const App: React.FC = () => {
           }
         `}
             </style>
-            {renderCurrentView()}
+
+            <Router>
+                <Routes>
+                    <Route
+                        path="/login"
+                        element={
+                            token ?
+                                <Navigate to="/booking" replace /> :
+                                <Login onLogin={handleLogin} />
+                        }
+                    />
+
+                    <Route
+                        path="/booking"
+                        element={
+                            <ProtectedRoute>
+                                <Booking
+                                    token={token}
+                                    onBookingSuccess={handleBookingSuccess}
+                                    onLogout={handleLogout}
+                                />
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/booking-details"
+                        element={
+                            <ProtectedRoute>
+                                {currentBooking ? (
+                                    <BookingDetails
+                                        bookingResponse={currentBooking}
+                                        token={token}
+                                        onBack={() => setCurrentBooking(null)}
+                                        onLogout={handleLogout}
+                                    />
+                                ) : (
+                                    <Navigate to="/booking" replace />
+                                )}
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/"
+                        element={
+                            token ?
+                                <Navigate to="/booking" replace /> :
+                                <Navigate to="/login" replace />
+                        }
+                    />
+
+                    {/* 404 Route */}
+                    <Route
+                        path="*"
+                        element={
+                            token ?
+                                <Navigate to="/booking" replace /> :
+                                <Navigate to="/login" replace />
+                        }
+                    />
+                </Routes>
+            </Router>
         </>
     );
 };
