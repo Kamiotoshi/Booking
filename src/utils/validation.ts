@@ -32,8 +32,15 @@ export class ValidationUtils {
             errors.lastname = 'Tên không được để trống';
         }
 
-        if (!data.totalprice || data.totalprice <= 0) {
-            errors.totalprice = 'Tổng giá phải lớn hơn 0';
+        // Kiểm tra totalprice chi tiết hơn
+        if (!data.totalprice || isNaN(data.totalprice) || data.totalprice <= 0) {
+            if (!data.totalprice || isNaN(data.totalprice)) {
+                errors.totalprice = 'Vui lòng nhập tổng giá hợp lệ';
+            } else if (data.totalprice <= 0) {
+                errors.totalprice = 'Tổng giá phải lớn hơn 0';
+            }
+        } else if (!Number.isInteger(data.totalprice)) {
+            errors.totalprice = 'Tổng giá phải là số nguyên';
         }
 
         if (!data.bookingdates.checkin) {

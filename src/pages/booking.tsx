@@ -2,9 +2,9 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Loader2, Calendar, User, DollarSign, CreditCard } from 'lucide-react';
+import { Loader2, Calendar, User, DollarSign, CreditCard, AlertCircle } from 'lucide-react';
 import type { BookingData, BookingResponse } from '../models/bookingResponse.ts';
-import { BookingService } from '../services/bookingService.ts';
+import { BookingService, TokenExpiredError } from '../services/bookingService.ts';
 import { ValidationUtils } from '../utils/validation.ts';
 import { FormatUtils } from '../utils/format.ts';
 import { Alert } from '../components/alert.tsx';
@@ -14,6 +14,7 @@ interface BookingFormProps {
     token: string;
     onBookingSuccess: (booking: BookingResponse) => void;
     onLogout: () => void;
+    onTokenExpired?: () => void;
 }
 
 export interface ValidationErrors {
@@ -21,9 +22,9 @@ export interface ValidationErrors {
 }
 
 export const Booking: React.FC<BookingFormProps> = ({
-                                                        // token,
                                                         onBookingSuccess,
-                                                        onLogout
+                                                        onLogout,
+                                                        onTokenExpired
                                                     }) => {
     const navigate = useNavigate();
     const [formData, setFormData] = useState<BookingData>({
@@ -39,6 +40,7 @@ export const Booking: React.FC<BookingFormProps> = ({
 
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string>('');
+    const [isTokenExpired, setIsTokenExpired] = useState(false);
     const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
 
     const firstnameRef = useRef<HTMLInputElement | null>(null);
@@ -65,7 +67,13 @@ export const Booking: React.FC<BookingFormProps> = ({
     }, [validationErrors]);
 
     const handleInputChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = field === 'totalprice' ? parseFloat(e.target.value) || 0 : e.target.value;
+        let value: any = e.target.value;
+
+        if (field === 'totalprice') {
+            // Chuyển đổi thành số, nếu không hợp lệ thì để là 0
+            const numValue = parseFloat(value);
+            value = isNaN(numValue) ? 0 : Math.max(0, numValue); // Đảm bảo không âm
+        }
 
         if (field.includes('bookingdates.')) {
             const dateField = field.split('.')[1];
@@ -84,6 +92,7 @@ export const Booking: React.FC<BookingFormProps> = ({
             setValidationErrors(prev => ({ ...prev, [field]: '' }));
         }
         setError('');
+        setIsTokenExpired(false);
     };
 
     const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -100,15 +109,29 @@ export const Booking: React.FC<BookingFormProps> = ({
 
         setIsLoading(true);
         setError('');
+        setIsTokenExpired(false);
 
         try {
             const bookingResponse = await BookingService.createBooking(formData);
             onBookingSuccess(bookingResponse);
             navigate('/booking-details');
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Có lỗi xảy ra khi tạo booking');
+            if (err instanceof TokenExpiredError) {
+                setIsTokenExpired(true);
+                setError('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại để tiếp tục.');
+            } else {
+                setError(err instanceof Error ? err.message : 'Có lỗi xảy ra khi tạo booking');
+            }
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const handleTokenExpiredLogout = () => {
+        if (onTokenExpired) {
+            onTokenExpired();
+        } else {
+            onLogout();
         }
     };
 
@@ -136,7 +159,21 @@ export const Booking: React.FC<BookingFormProps> = ({
                             </div>
 
                             <div className="card-body p-4">
-                                {error && (
+                                {isTokenExpired && (
+                                    <div className="alert alert-warning" role="alert">
+                                        <AlertCircle size={20} className="me-2" />
+                                        <strong>Phiên đăng nhập hết hạn!</strong>
+                                        <p className="mb-2 mt-1">{error}</p>
+                                        <button
+                                            className="btn btn-warning btn-sm"
+                                            onClick={handleTokenExpiredLogout}
+                                        >
+                                            Đăng nhập lại
+                                        </button>
+                                    </div>
+                                )}
+
+                                {error && !isTokenExpired && (
                                     <Alert
                                         type="error"
                                         message={error}
@@ -159,7 +196,7 @@ export const Booking: React.FC<BookingFormProps> = ({
                                                 value={formData.firstname}
                                                 onChange={handleInputChange('firstname')}
                                                 placeholder="Nhập họ"
-                                                disabled={isLoading}
+                                                disabled={isLoading || isTokenExpired}
                                             />
                                             {validationErrors.firstname && (
                                                 <div className="invalid-feedback">{validationErrors.firstname}</div>
@@ -179,7 +216,7 @@ export const Booking: React.FC<BookingFormProps> = ({
                                                 value={formData.lastname}
                                                 onChange={handleInputChange('lastname')}
                                                 placeholder="Nhập tên"
-                                                disabled={isLoading}
+                                                disabled={isLoading || isTokenExpired}
                                             />
                                             {validationErrors.lastname && (
                                                 <div className="invalid-feedback">{validationErrors.lastname}</div>
@@ -202,7 +239,7 @@ export const Booking: React.FC<BookingFormProps> = ({
                                                 onChange={handleInputChange('totalprice')}
                                                 placeholder="Nhập tổng giá"
                                                 min="1"
-                                                disabled={isLoading}
+                                                disabled={isLoading || isTokenExpired}
                                             />
                                             {validationErrors.totalprice && (
                                                 <div className="invalid-feedback">{validationErrors.totalprice}</div>
@@ -217,7 +254,7 @@ export const Booking: React.FC<BookingFormProps> = ({
                                                     id="depositpaid"
                                                     checked={formData.depositpaid}
                                                     onChange={handleCheckboxChange}
-                                                    disabled={isLoading}
+                                                    disabled={isLoading || isTokenExpired}
                                                 />
                                                 <label className="form-check-label fw-semibold" htmlFor="depositpaid">
                                                     <CreditCard size={16} className="me-1" />
@@ -240,7 +277,7 @@ export const Booking: React.FC<BookingFormProps> = ({
                                                 id="checkin"
                                                 value={formData.bookingdates.checkin}
                                                 onChange={handleInputChange('bookingdates.checkin')}
-                                                disabled={isLoading}
+                                                disabled={isLoading || isTokenExpired}
                                             />
                                             {validationErrors.checkin && (
                                                 <div className="invalid-feedback">{validationErrors.checkin}</div>
@@ -259,7 +296,7 @@ export const Booking: React.FC<BookingFormProps> = ({
                                                 id="checkout"
                                                 value={formData.bookingdates.checkout}
                                                 onChange={handleInputChange('bookingdates.checkout')}
-                                                disabled={isLoading}
+                                                disabled={isLoading || isTokenExpired}
                                             />
                                             {validationErrors.checkout && (
                                                 <div className="invalid-feedback">{validationErrors.checkout}</div>
@@ -270,8 +307,8 @@ export const Booking: React.FC<BookingFormProps> = ({
                                     <button
                                         type="submit"
                                         className="btn btn-primary w-100 py-2 mt-3"
-                                        disabled={isLoading}
-                                        style={{ cursor: isLoading ? 'not-allowed' : 'pointer' }}
+                                        disabled={isLoading || isTokenExpired}
+                                        style={{ cursor: (isLoading || isTokenExpired) ? 'not-allowed' : 'pointer' }}
                                     >
                                         {isLoading ? (
                                             <>

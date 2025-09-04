@@ -2,10 +2,10 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { CheckCircle, User, Calendar, DollarSign } from 'lucide-react';
+import { CheckCircle, User, Calendar, DollarSign, AlertCircle } from 'lucide-react';
 import type { BookingResponse } from '../models/bookingResponse.ts';
 import type { BookingData } from '../models/bookingResponse.ts'
-import { BookingService } from '../services/bookingService.ts';
+import { BookingService, TokenExpiredError } from '../services/bookingService.ts';
 import { FormatUtils } from '../utils/format.ts';
 import { Alert } from './alert.tsx';
 import { LoadingSpinner, LoadingProgressBar } from './loading.tsx';
@@ -20,6 +20,7 @@ interface BookingDetailsProps {
     token: string;
     onBack?: () => void;
     onLogout: () => void;
+    onTokenExpired?: () => void;
 
     // Tuỳ chỉnh giao diện
     showCreateNewButton?: boolean;
@@ -30,9 +31,9 @@ interface BookingDetailsProps {
 export const BookingDetails: React.FC<BookingDetailsProps> = ({
                                                                   bookingResponse,
                                                                   bookingId,
-                                                                  // token,
                                                                   onBack,
                                                                   onLogout,
+                                                                  onTokenExpired,
                                                                   showCreateNewButton = true,
                                                                   showPrintButton = true,
                                                                   successMessage
@@ -40,15 +41,11 @@ export const BookingDetails: React.FC<BookingDetailsProps> = ({
     const navigate = useNavigate();
     const { id: urlBookingId } = useParams<{ id: string }>();
 
-    // Debug log
-    console.log('URL Booking ID:', urlBookingId);
-    console.log('Prop Booking ID:', bookingId);
-    console.log('BookingResponse:', bookingResponse);
-
     const [bookingDetails, setBookingDetails] = useState<BookingData | null>(null);
     const [currentBookingId, setCurrentBookingId] = useState<number | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string>('');
+    const [isTokenExpired, setIsTokenExpired] = useState(false);
 
     // Xác định bookingId từ các nguồn: prop -> URL param -> bookingResponse
     const resolvedBookingId = bookingId ||
@@ -65,13 +62,19 @@ export const BookingDetails: React.FC<BookingDetailsProps> = ({
 
         setIsLoading(true);
         setError('');
+        setIsTokenExpired(false);
         setCurrentBookingId(resolvedBookingId);
 
         try {
             const data = await BookingService.getBookingById(resolvedBookingId);
             setBookingDetails(data);
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Không thể tải thông tin booking');
+            if (err instanceof TokenExpiredError) {
+                setIsTokenExpired(true);
+                setError('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại để tiếp tục.');
+            } else {
+                setError(err instanceof Error ? err.message : 'Không thể tải thông tin booking');
+            }
         } finally {
             setIsLoading(false);
         }
@@ -95,7 +98,15 @@ export const BookingDetails: React.FC<BookingDetailsProps> = ({
         if (onBack) {
             onBack();
         } else {
-            navigate(-1); // Go back to previous page
+            navigate(-1);
+        }
+    };
+
+    const handleTokenExpiredLogout = () => {
+        if (onTokenExpired) {
+            onTokenExpired();
+        } else {
+            onLogout();
         }
     };
 
@@ -111,7 +122,37 @@ export const BookingDetails: React.FC<BookingDetailsProps> = ({
         );
     }
 
-    if (error || !bookingDetails || !currentBookingId) {
+    if (isTokenExpired) {
+        return (
+            <div className="container-fluid min-vh-100 bg-light py-4">
+                <div className="container">
+                    <div className="row justify-content-center">
+                        <div className="col-12 col-lg-8">
+                            <div className="alert alert-warning" role="alert">
+                                <AlertCircle size={20} className="me-2" />
+                                <strong>Phiên đăng nhập hết hạn!</strong>
+                                <p className="mb-2 mt-1">{error}</p>
+                                <button
+                                    className="btn btn-warning btn-sm me-2"
+                                    onClick={handleTokenExpiredLogout}
+                                >
+                                    Đăng nhập lại
+                                </button>
+                                <button
+                                    className="btn btn-outline-secondary btn-sm"
+                                    onClick={handleBack}
+                                >
+                                    Quay lại
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    if (error && !isTokenExpired || !bookingDetails || !currentBookingId) {
         return (
             <div className="container-fluid min-vh-100 bg-light py-4">
                 <div className="container">
@@ -119,8 +160,7 @@ export const BookingDetails: React.FC<BookingDetailsProps> = ({
                         <div className="col-12 col-lg-8">
                             <Alert
                                 type="error"
-                                // message={error || 'Không thể hiển thị thông tin booking'}
-                                message={'Không thể hiển thị thông tin booking'}
+                                message={error || 'Không thể hiển thị thông tin booking'}
                             />
                             <div className="text-center mt-3">
                                 <button

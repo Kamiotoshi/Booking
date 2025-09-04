@@ -7,12 +7,12 @@ import { Login } from './pages/login.tsx';
 import { Booking } from './pages/booking.tsx';
 import { BookingDetails } from './components/bookingDetails.tsx';
 import { LoginService } from './services/loginService.ts';
-import { LoadingSpinner } from './components/loading.tsx'; // Import spinner nếu có
+import { LoadingSpinner } from './components/loading.tsx';
 
 const App: React.FC = () => {
     const [token, setToken] = useState<string>('');
     const [currentBooking, setCurrentBooking] = useState<BookingResponse | null>(null);
-    const [isLoading, setIsLoading] = useState(true); // Thêm state này
+    const [isLoading, setIsLoading] = useState(true);
 
     // Load token synchronous trong useEffect
     useEffect(() => {
@@ -21,24 +21,23 @@ const App: React.FC = () => {
             if (storedToken && LoginService.isTokenValid(storedToken)) {
                 setToken(storedToken);
             }
-            setIsLoading(false); // Load xong
+            setIsLoading(false);
         };
         loadToken();
     }, []);
 
-    // Đồng bộ state với localStorage - kiểm tra định kỳ
-    useEffect(() => {
-        const interval = setInterval(() => {
-            const storedToken = LoginService.getStoredToken();
-            if (!storedToken && token) {
-                // Nếu localStorage bị xóa nhưng state vẫn có token
-                setToken('');
-                setCurrentBooking(null);
-            }
-        }, 1000);
+    // XÓA useEffect kiểm tra định kỳ localStorage
+    // useEffect(() => {
+    //     const interval = setInterval(() => {
+    //         const storedToken = LoginService.getStoredToken();
+    //         if (!storedToken && token) {
+    //             setToken('');
+    //             setCurrentBooking(null);
+    //         }
+    //     }, 1000);
 
-        return () => clearInterval(interval);
-    }, [token]);
+    //     return () => clearInterval(interval);
+    // }, [token]);
 
     const handleLogin = (authToken: string) => {
         setToken(authToken);
@@ -54,11 +53,18 @@ const App: React.FC = () => {
         setCurrentBooking(null);
     };
 
+    // Thêm hàm xử lý khi token invalid từ API calls
+    const handleTokenExpired = () => {
+        LoginService.removeStoredToken();
+        setToken('');
+        setCurrentBooking(null);
+    };
+
     // Protected Route Component
     const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         return token ? <>{children}</> : <Navigate to="/login" replace />;
     };
-    // Nếu đang loading, hiển thị spinner
+
     if (isLoading) {
         return (
             <div className="container-fluid min-vh-100 d-flex align-items-center justify-content-center">
@@ -142,6 +148,7 @@ const App: React.FC = () => {
                                     token={token}
                                     onBookingSuccess={handleBookingSuccess}
                                     onLogout={handleLogout}
+                                    onTokenExpired={handleTokenExpired}
                                 />
                             </ProtectedRoute>
                         }
@@ -154,6 +161,7 @@ const App: React.FC = () => {
                                 <BookingDetails
                                     token={token}
                                     onLogout={handleLogout}
+                                    onTokenExpired={handleTokenExpired}
                                     showCreateNewButton={false}
                                     successMessage="Chi tiết booking"
                                 />
@@ -171,6 +179,7 @@ const App: React.FC = () => {
                                         token={token}
                                         onBack={() => setCurrentBooking(null)}
                                         onLogout={handleLogout}
+                                        onTokenExpired={handleTokenExpired}
                                     />
                                 ) : (
                                     <Navigate to="/booking" replace />
