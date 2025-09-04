@@ -6,8 +6,9 @@ import type { BookingResponse } from './models/bookingResponse.ts';
 import { Login } from './pages/login.tsx';
 import { Booking } from './pages/booking.tsx';
 import { BookingDetails } from './components/bookingDetails.tsx';
-import { LoginService } from './services/loginService.ts';
+// import { LoginService } from './services/loginService.ts';
 import { LoadingSpinner } from './components/loading.tsx';
+import {Localstorage} from "./utils/localstorage.ts";
 
 const App: React.FC = () => {
     const [token, setToken] = useState<string>('');
@@ -17,8 +18,8 @@ const App: React.FC = () => {
     // Load token synchronous trong useEffect
     useEffect(() => {
         const loadToken = () => {
-            const storedToken = LoginService.getStoredToken();
-            if (storedToken && LoginService.isTokenValid(storedToken)) {
+            const storedToken = Localstorage.getStoredToken();
+            if (storedToken && Localstorage.isTokenValid(storedToken)) {
                 setToken(storedToken);
             }
             setIsLoading(false);
@@ -48,14 +49,14 @@ const App: React.FC = () => {
     };
 
     const handleLogout = () => {
-        LoginService.removeStoredToken();
+        Localstorage.removeStoredToken();
         setToken('');
         setCurrentBooking(null);
     };
 
     // Thêm hàm xử lý khi token invalid từ API calls
     const handleTokenExpired = () => {
-        LoginService.removeStoredToken();
+        Localstorage.removeStoredToken();
         setToken('');
         setCurrentBooking(null);
     };

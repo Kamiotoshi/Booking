@@ -1,7 +1,8 @@
 // src/services/bookingService.ts
 
 import type { BookingData, BookingResponse } from '../models/bookingResponse.ts';
-import { LoginService } from './loginService.ts';
+// import { LoginService } from './loginService.ts';
+import {Localstorage} from "../utils/localstorage.ts";
 
 const API_BASE_URL = '/api';
 
@@ -15,7 +16,7 @@ export class TokenExpiredError extends Error {
 
 export class BookingService {
     static async createBooking(bookingData: BookingData, token?: string): Promise<BookingResponse> {
-        const authToken = token || LoginService.getStoredToken();
+        const authToken = token || Localstorage.getStoredToken();
 
         if (!authToken) {
             throw new TokenExpiredError();
@@ -46,7 +47,7 @@ export class BookingService {
     }
 
     static async getBookingById(bookingId: number): Promise<BookingData> {
-        const authToken = LoginService.getStoredToken();
+        const authToken = Localstorage.getStoredToken();
 
         if (!authToken) {
             throw new TokenExpiredError();
